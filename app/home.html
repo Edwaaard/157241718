@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html ng-app="app1">
+    <head>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+        <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+        
+        <title>Weather Information</title>
+        <style>
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #map {
+            height: 40%;
+        }
+        
+        .controls {
+            margin-top: 10px;
+            border: 1px solid transparent;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            height: 32px;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #pac-input {
+          background-color: #fff;
+          font-family: Roboto;
+          font-size: 15px;
+          font-weight: 300;
+          margin-left: 12px;
+          padding: 0 11px 0 13px;
+          text-overflow: ellipsis;
+          width: 300px;
+        }
+        
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        .pac-container {
+            font-family: Roboto;
+        }
+
+        #type-selector {
+            color: #fff;
+            background-color: #4d90fe;
+            padding: 5px 11px 0px 11px;
+        }
+
+        #type-selector label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+      
+        #target {
+            width: 345px;
+        }
+          
+        div.static {
+            position: static;
+            border: 3px solid #73AD21;
+        }
+      
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+        <script src="https://lorenzofox3.github.io/smart-table-website/bower_components/angular-smart-table/dist/smart-table.js"></script>
+        <script src="js/client.js"></script>
+        
+        </head>
+
+        <body ng-controller="mainController">
+            <input id="pac-input" class="controls" type="text" placeholder="Hong Kong" ng-model="country" ng-keypress="searchWeather()">
+            <div id="map"></div>
+            
+           <table st-table='data' class='table'>
+    <thead>
+      <tr>
+        <th colspan='999'>
+          <h4 style="text-align: center;">{{ currentcountry }}</h4>
+        </th>
+      </tr>
+      <tr>
+        <th st-sort='firstName'>Datetime</th>
+        <th st-sort='lastName'>Temperature</th>
+        <th st-sort='phone'>Temperature(MIN)</th>
+        <th st-sort='hometown'>Temperature(MAX)</th>
+        <th st-sort='hometown'>Pressure</th>
+        <th st-sort='hometown'>Sea Level</th>
+        <th st-sort='hometown'>Ground Level</th>
+        <th st-sort='hometown'>Humidity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="x in returnn">
+                <td>{{ x.dt_txt }}</td>
+                <td>{{ x.main.temp -273 | number:0 }}</td>
+                <td>{{ x.main.temp_min -273 | number:0 }}</td>
+                <td>{{ x.main.temp_max -273 | number:0}}</td>
+                <td>{{ x.main.pressure }}</td>
+                <td>{{ x.main.sea_level }}</td>
+                <td>{{ x.main.grnd_level }}</td>
+                <td>{{ x.main.humidity }}</td>
+                </tr>
+    </tbody>
+  </table>
+            <script>
+    
+      function initAutocomplete() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 22.3964, lng: 114.1095},
+          zoom: 13,
+          mapTypeId: 'roadmap'
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+          markers = [];
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+      }
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIRILwzzyGXK_YlNdUwdWoU_r_fMmkQws&libraries=places&callback=initAutocomplete"
+         async defer></script>
+  </body>
+        
+</html>
